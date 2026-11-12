@@ -1,0 +1,43 @@
+Update the solve method function with the following:
+void solve(const std::string& filename, std::ofstream& outFile) {
+        std::cout << "Puzzle file: " << filename << "\n";
+        gridprint();
+
+        outFile << "Puzzle: " << filename << "\n";
+
+        int solutionCount = 0;
+        if (isInitialBoardValid()) { 
+            solveRecursive(solutionCount, outFile);
+        } 
+
+        if (solutionCount == 0) {
+            std::cout << "No solution found.\n\n";
+            outFile << "No solution found.\n"; 
+        } else { 
+            std::cout << "Solutions found: " << solutionCount << "\n\n"; 
+            outFile << "Solutions found: " << solutionCount << "\n"; 
+        } 
+    }
+Update the main funct with the following:
+int main() {
+    std::string files[] = {"puzzle1.txt", "puzzle2.txt", "puzzle3.txt", "puzzle4.txt", "puzzle5.txt"};
+    
+    std::ofstream outFile("solutions.txt");
+    if (!outFile.is_open()) {
+        std::cout << "Error opening output file: solutions.txt\n";
+        return 1;
+    }
+
+    for (int i = 0; i < 5; ++i) {
+        std::string filename = files[i];
+        Grid grid;
+        if (grid.loadFromFile(filename)) { 
+            grid.solve(filename, outFile);
+        } else {
+            std::cout << "Could not open or read file: " << filename << "\n\n";
+        }
+    }
+    
+    outFile.close();
+    return 0; 
+}

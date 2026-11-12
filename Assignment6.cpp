@@ -2,16 +2,16 @@
 Program Name: EECS 348 Assignment 5 - Recursive Sudoku Solver (Modified from Assignment 4)
 Description: This program reads 5 Sudoku puzzle files (puzzle1.txt - puzzle5.txt), solves them 
              using recursive backtracking, displays the results to the console, and writes the 
-             solutions for each puzzle to corresponding output files (solution1.txt - solution5.txt).
+             solutions to Output.txt.
 Inputs: puzzle1.txt, puzzle2.txt, puzzle3.txt, puzzle4.txt, puzzle5.txt
-Outputs: Console output and solution1.txt, solution2.txt, solution3.txt, solution4.txt, solution5.txt
+Outputs: Console output and Solutions.txt (Includes all puzzles in one output)
 Collaborators: Wyatt Corcoran (Original Assignment 4 Author)
 Other Sources: Google Gemini, ChatGPT
 Author: Wyatt Corcoran
 Created: 10/15/2026
-Revised by: Minuka Cooray, Revised by Wyatt C
-Revision Date: 10/29/2026
-Compile on Cycle: g++ -std=c++11 -Wall -Wextra -o assignment5.exe assignment5.cpp
+Revised by: Minuka Cooray, Revised again by Wyatt C
+Revision Date: 11/12/2026
+Compile on Cycle: g++ -std=c++11 -Wall -Wextra -o Assignment6.exe Assignment6.cpp
 Run: ./assignment5.exe
 */
 
@@ -22,6 +22,7 @@ Run: ./assignment5.exe
 #include <set>//Sets, similar to lists, can only contain unique elems
 
 //NOTICE - ALL ORIGINAL CODE BY GEMINI & WYATT CORCORAN, revisions for Assignment 5 made by Minuka Cooray are clarified
+//NOTICE 2 - All further revisions made by Wyatt for Assignment 6 are clairified in code.
 
 /*
 Class Grid has functions to instantiate the 9x9 grid, load puzzles from files, check legal numbers
@@ -152,33 +153,29 @@ public://Begins public member section of Grid class
     /*
     Block Summary: Puzzle Solve Controller and Solution File Generator
     Authored by: Original by Wyatt Corcoran, revised by Minuka Cooray (with Gemini assistance)
-    Opens the corresponding solutionN.txt file, validates the initial puzzle, initiates the recursive solver,
-    and writes either "No solution found." or "Solutions found: n" to the output file.
+    Revised by Wyatt Corcoran(Gemini assistance): Changed to always output to the same text file and included
+    the required information before each puzzle and its solutions in the chain, such as solution number, puzzle num
+    and includes "No solution found if that is the case"
     */
-    void solve(const std::string& filename, const std::string& outFilename) {//Takes input filename and output solution filename
-        std::cout << "Puzzle file: " << filename << "\n";//Prints the original for comparison sake
-        gridprint();//prints the original
+    void solve(const std::string& filename, std::ofstream& outFile) {//Takes input filename and fixed output file
+        std::cout << "Puzzle file: " << filename << "\n";//Creates a "Header including file name"
+        gridprint();//Prints original grid for the respective file
 
-        std::ofstream outFile(outFilename); //Opens the target solutionN.txt file for writing
-        if (!outFile.is_open()) { //Checks if the output file failed to open
-            std::cout << "Error opening output file: " << outFilename << "\n"; //Prints error message if file creation fails
-            return; //Exits the function early if output file cannot be opened
-        } //Ends output file open check
+        outFile << "Puzzle: " << filename << "\n";//Print puzzle then the respective number
 
-        int solutionCount = 0;//initializes solutions at 0
-        if (isInitialBoardValid()) { //Checks that the starting puzzle has no immediate rule conflicts
-            solveRecursive(solutionCount, outFile);//Begins recursion and streams found solutions to outFile
-        } //Ends initial board validation check
+        int solutionCount = 0; //For each respective puzzle Inits solutions to 0
+        if (isInitialBoardValid()) { //Checker if the board is valid
+            solveRecursive(solutionCount, outFile);//Runs a solver until all or no solutions are found
+        }// end for if statment
 
-        if (solutionCount == 0) {//No solution found, returns no solution
-            std::cout << "No solution found.\n\n";//Prints no solution found to console
-            outFile << "No solution found.\n"; //Writes the single line "No solution found." to solutionN.txt
-        } else { //Executes if one or more valid solutions were found
-            std::cout << "Solutions found: " << solutionCount << "\n\n"; //Prints total solution count to console
-            outFile << "Solutions found: " << solutionCount << "\n"; //Writes "Solutions found: n" at the end of solutionN.txt
-        } //Ends solution count conditional block
-        outFile.close(); //Closes the solutionN.txt output file stream
-    } //Ends solve function
+        if (solutionCount == 0) {//If else based on number of solutions from the recursive approach
+            std::cout << "No solution found.\n\n";//Command line print for no solution
+            outFile << "No solution found.\n"; //File output for no solution
+        } else { 
+            std::cout << "Solutions found: " << solutionCount << "\n\n"; //Command line output for number of solutions
+            outFile << "Solutions found: " << solutionCount << "\n"; //.txt output including num of solutions
+        } //End for else statment
+    }//End for solve declaration
 
     // Print function that displays output cleanly
     //section rewritten by Wyatt to fit to the output standards in solution1.txt
@@ -216,24 +213,28 @@ public://Begins public member section of Grid class
 Main loops through the 5 puzzle files (puzzle1.txt - puzzle5.txt), generates the matching output
 filename (solution1.txt - solution5.txt), loads each puzzle into the Grid class, and writes the results.
 Original by Wyatt Corcoran, modified by Minuka Cooray to map each puzzleN.txt to solutionN.txt.
+Modified By Wyatt Corcoran with assistance from Gemini to chang output format to a single solution.txt file
 */
-int main() {//Main entry point of the program
-    //Hard assigned the 5 puzzles
-    std::string files[] = {"puzzle1.txt", "puzzle2.txt", "puzzle3.txt", "puzzle4.txt", "puzzle5.txt"};//Array of input filenames
-    //Hard assigned the 5 matching solution output files
-    std::string outFiles[] = {"solution1.txt", "solution2.txt", "solution3.txt", "solution4.txt", "solution5.txt"};//Array of output filenames
-
-    //Iterates through each file index from 0 to 4
-    for (int i = 0; i < 5; ++i) {//Loops through all 5 puzzles using index i
-        std::string filename = files[i];//Gets current input puzzle filename
-        std::string outFilename = outFiles[i];//Gets matching solutionN.txt filename
-        Grid grid;//Makes a new grid
-        if (grid.loadFromFile(filename)) { //Loads the starting values from the file
-            grid.solve(filename, outFilename);//Runs the recursive solve and writes to solutionN.txt
-        } else {//if FALSE is output during the loadFromFile funct you get this error printed
-            std::cout << "Could not open or read file: " << filename << "\n\n";//error printed here
-        }//Ends file load conditional
-    }//Ends puzzle file loop
+int main() {//Initalizes the main funct
+    //Following line inits the puzzle names using the set ones, these should be in the same directory
+    std::string files[] = {"puzzle1.txt", "puzzle2.txt", "puzzle3.txt", "puzzle4.txt", "puzzle5.txt"};
     
-    return 0; //Finishes running successfully 
-}//Ends main function
+    std::ofstream outFile("solutions.txt");//Fixed output file name "solutions.txt" per instructions
+    if (!outFile.is_open()) {//If file cannot be opened 
+        std::cout << "Error opening output file: solutions.txt\n";//Console error print
+        return 1;//run failure for main error case
+    }//end for the if loop
+    //Iterates through the string list of filenames
+    for (int i = 0; i < 5; ++i) {//Start at index 0 and iterate through all 5
+        std::string filename = files[i];//filename = the file at the index i
+        Grid grid;//makes a grid for that filename
+        if (grid.loadFromFile(filename)) { //Loads that file using loadfromfile helper
+            grid.solve(filename, outFile);//solves usig the same logic
+        } else {//error handling
+            std::cout << "Could not open or read file: " << filename << "\n\n";//prints that it couldnt open or read
+        }//end for the else loop
+    }//end for the for loop
+    
+    outFile.close();//close the output file at the end
+    return 0; //successful run
+}
